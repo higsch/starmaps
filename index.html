@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+  <head>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.0.6/chroma.min.js"></script>
+    <script src="starTime.js"></script>
+    <script src="createStarMap.js"></script>
+
+    <link href="style.css" rel="stylesheet">
+  </head>
+  <body>
+    <div id="star-map"></div>
+
+    <script>
+      (async function setup() {
+        // read in star coordinates and info
+        const stars = await d3.csv('stars.csv', (d) => {
+          return {
+            ...d,
+            hip: +d.hip,
+            ra: +d.ra,
+            dec: +d.dec,
+            mag: +d.mag,
+            absmag: +d.absmag,
+            t_eff: +d.t_eff,
+            constellations: +d.constellations
+          };
+        });
+
+        // filter for visible stars
+        const starsVisible = stars.filter((d) => d.mag <= 6.5);
+
+        const constellationLinks = await d3.csv('constellation_links.csv', (d) => {
+          return {
+            ...d,
+            source: +d.source,
+            target: +d.target
+          };
+        });
+
+        const constellationNames = await d3.csv('constellation_names.csv', (d) => {
+          return {
+            ...d
+          };
+        });
+        
+        // select all western constellations
+        // const whichConstellations = constellationNames.filter((d) => /^western/.test(d.const_id)).map((d) => d.const_name);
+
+        const whichConstellations = [
+          'western-Tau',
+          'western-Ari',
+          'western-Gem',
+          'western-Cnc',
+          'western-Leo',
+          'western-Vir',
+          'western-Lib',
+          'western-Sco',
+          'western-Sgr',
+          'western-Cap',
+          'western-Aqr',
+          'western-Psc',
+          'inuit-006', // grosser Wagen
+          'western-UMi', // kleiner Wagen
+          'western-Cas'
+        ];
+
+        const constInfo = constellationNames.filter((d) => whichConstellations.includes(d.const_id));
+        
+        const constIds = constInfo.map((d) => d.const_id);
+        
+        // get the relevant links
+        const starLinks = constellationLinks.filter((d => constIds.includes(d.const_id)));
+        const starLinksNamed = starLinks.map((link) => {
+          const { const_name: label } = constInfo.find((d) => d.const_id === link.const_id);
+          return {
+            ...link,
+            label
+          };
+        });
+        
+        // star labels
+        const labelStars = ['Polaris', ...stars.filter((star) => star.mag < 1).map((star) => star.proper)];
+
+        const locations = {
+          herzjesu: [49.382584, 8.388330],
+          danderyd_sj: [59.393271, 18.038903],
+          dritter_orden: [48.166301, 11.503942],
+          taxis_klinik: [48.161416, 11.531731],
+          uniklinik_mannheim: [49.492444, 8.487697],
+          diakonissen_speyer: [49.311488, 8.435642],
+          obernburg: [49.840527, 9.148876],
+          stjakobus: [49.386976, 8.371484],
+          deutsche_kirche: [59.324229, 18.071600]
+        };
+
+        // create a star map
+        // double-check here: https://strellas.com/kreator/?lang=en
+        createStarMap(
+          '#star-map',
+          starsVisible,
+          starLinksNamed,
+          date = new Date(2019, 11, 24, 11, 0, 0),
+          latlon = locations.deutsche_kirche,
+          labelStars,
+          false)
+      })();
+    </script>
+  </body>
+</html>
