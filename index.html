@@ -95,12 +95,13 @@
 
         // create a star map
         // double-check here: https://strellas.com/kreator/?lang=en
+        console.log(starsVisible)
         createStarMap(
           '#star-map',
           starsVisible,
           starLinksNamed,
-          date = new Date(2019, 11, 24, 11, 0, 0),
-          latlon = locations.deutsche_kirche,
+          date = new Date(),
+          latlon = locations.danderyd_sj,
           labelStars,
           false)
       })();
